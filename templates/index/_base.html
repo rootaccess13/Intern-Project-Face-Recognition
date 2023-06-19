@@ -1,0 +1,642 @@
+{% load compress %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earist Administrative Attendance - FR_V.1.0</title>
+
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'src/output.css' %}">
+    {% endcompress %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.1/control_utils.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.1/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
+
+</head>
+<style>
+    img {
+        width: 100%;
+    }
+    video {
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+    #captured_photo {
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+
+</style>
+<body class="bg-cover bg-center bg-no-repeat bg-[url('https://scontent.fmnl2-2.fna.fbcdn.net/v/t1.15752-9/345006993_1304981443422857_5173131507771518723_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=ae9488&_nc_eui2=AeEShk6SRRoUEsmPTY4FmjVCaFt-7MQY9kBoW37sxBj2QJ2RSXI5NoY1gNEzaZO2mI97LAVMjY7z-DoyiRe-oa6i&_nc_ohc=vaeKeEp1Ul8AX-RzTIP&_nc_ht=scontent.fmnl2-2.fna&oh=03_AdSIyar1WmZ3YJMemmTNRkcTAWvWyBYesni4-_IO2wskmQ&oe=64AE2A1C')]">
+
+    <!-- Add this -->
+    <nav class="bg-green-50 border-gray-200 bg-red-500 px-2 sm:px-4 py-2.5 dark:bg-gray-800">
+        <div class="container flex flex-wrap items-center justify-between mx-auto">
+          <a href="{{ .Site.Params.homepage }}/" class="flex items-center">
+              <img src="{% static 'src/logo.png' %}" class="h-8 mr-3 sm:h-12" alt="Flowbite Logo" />
+              <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Earist Administrative Attendance</span>
+          </a>
+          <button data-collapse-toggle="mobile-menu" type="button" class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="mobile-menu" aria-expanded="false">
+            <span class="sr-only">Open main menu</span>
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+            <svg class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+          </button>
+          <div class="hidden w-full md:block md:w-auto" id="mobile-menu">
+            <ul class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">
+                <div class="mx-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-auto cursor-pointer hover:border-2" id="control">
+                    <svg fill="none" stroke="currentColor" class="text-white bg-red-500 rounded-full p-2" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                </div>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+
+  
+    <!-- End of new HTML -->
+
+    <div class="container mt-4 mx-auto">
+
+
+  
+
+        <div class="hidden relative z-10" id="duplicate" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <!--
+              Background backdrop, show/hide based on modal state.
+          
+              Entering: "ease-out duration-300"
+                From: "opacity-0"
+                To: "opacity-100"
+              Leaving: "ease-in duration-200"
+                From: "opacity-100"
+                To: "opacity-0"
+            -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+          
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+              <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <!--
+                  Modal panel, show/hide based on modal state.
+          
+                  Entering: "ease-out duration-300"
+                    From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    To: "opacity-100 translate-y-0 sm:scale-100"
+                  Leaving: "ease-in duration-200"
+                    From: "opacity-100 translate-y-0 sm:scale-100"
+                    To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                -->
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full max-w-sm">
+                  <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:items-center justify-center">
+                      <div class="mx-auto flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-auto">
+                        <svg fill="none" stroke="currentColor" class="p-2 text-red-400" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+                          </svg>
+                        </div>
+                      <div class="mt-4 text-center sm:mt-0 sm:text-center">
+                        <h3 class="text-lg font-semibold text-gray-900 items-center mt-4" id="modal-title">Duplicate Entry for <span id="duser"></span> </h3>
+                        <!-- <div class="mt-2">
+                          <p class="text-sm text-gray-500">Are you sure you want to deactivate your account? All of your data will be permanently removed. This action cannot be undone.</p>
+                        </div> -->
+                      </div>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="closeDup" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-full">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hidden relative z-10" id="success" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+          
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+              <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full max-w-sm">
+                  <div class="bg-white p-6">
+                    <div class="sm:items-center justify-center">
+                      <div class="mx-auto flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-auto">
+                          <svg fill="none" stroke="currentColor" class="p-2 text-red-400" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                        </div>
+                        <h1 class="font-bold text-lg text-center">Attendance recorded</h1>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hidden relative z-10" id="confirmation" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <!--
+              Background backdrop, show/hide based on modal state.
+          
+              Entering: "ease-out duration-300"
+                From: "opacity-0"
+                To: "opacity-100"
+              Leaving: "ease-in duration-200"
+                From: "opacity-100"
+                To: "opacity-0"
+            -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+          
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+              <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <!--
+                  Modal panel, show/hide based on modal state.
+          
+                  Entering: "ease-out duration-300"
+                    From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    To: "opacity-100 translate-y-0 sm:scale-100"
+                  Leaving: "ease-in duration-200"
+                    From: "opacity-100 translate-y-0 sm:scale-100"
+                    To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                -->
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                  <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+
+                      <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Attendance confirmation for user  <span id="cuser"></span> </h3>
+                        <div class="bg-yellow-300 mb-2">
+                            <img class="object-fit w-full " id="predicted_holder">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border border-blue-500 rounded-md p-2">
+                            <div class="flex flex-col">
+                                <h1 class="font-bold text-sm">Name: <span class="font-semibold" id="_name"></span> </h1>
+                                <h1 class="font-bold text-sm">Employee No.: <span class="font-semibold" id="emp_id"></span> </h1>
+                                <h1 class="font-bold text-sm">Department: <span class="font-semibold" id="_dept"></span> </h1>
+                            </div>
+                            <div class="flex flex-col">
+                                <h1 class="font-bold text-sm">Date/Time: <span class="font-semibold" id="_dtime"></span> </h1>
+                                <h1 class="font-bold text-sm">shift: <span class="font-semibold" id="_shift"></span> </h1>
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" id="confBtn" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Confirm</button>
+                    <button type="button" id="closeCon" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Retake</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hidden relative z-10" id="authenticate" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <!--
+              Background backdrop, show/hide based on modal state.
+          
+              Entering: "ease-out duration-300"
+                From: "opacity-0"
+                To: "opacity-100"
+              Leaving: "ease-in duration-200"
+                From: "opacity-100"
+                To: "opacity-0"
+            -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+          
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+              <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <!--
+                  Modal panel, show/hide based on modal state.
+          
+                  Entering: "ease-out duration-300"
+                    From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    To: "opacity-100 translate-y-0 sm:scale-100"
+                  Leaving: "ease-in duration-200"
+                    From: "opacity-100 translate-y-0 sm:scale-100"
+                    To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                -->
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full max-w-sm">
+                  <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:items-center justify-center">
+                      <div class="mx-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-auto">
+                          <svg fill="none" stroke="currentColor" class="p-2 text-red-400" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path>
+                          </svg>
+                        </div>
+                      <div class="mt-4 text-center sm:mt-0 sm:text-center">
+                        <h3 class="text-lg font-semibold text-gray-900 items-center mt-4" id="modal-title">Access Settings</h3>
+                        <div class="mt-4">
+                            <input type="password" id="auth_password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter password" required>
+                            <div class="flex flex-inline">
+                                <span id="status" class="flex text-red-400 text-xs items-start"></span>
+                                <span id="countdown" class="flex text-gray-400 text-xs items-start"></span>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="authBtn" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-full ml-2">Authenticate</button>
+                    <button type="button" id="cancelAuthBtn" class="inline-flex w-full justify-center rounded-md bg-blue-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-full">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% block content %}
+        {% endblock content %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/datepicker.min.js"></script>
+
+    <script>
+        const video = document.getElementById("vid_holder");
+        const captureBtn = document.getElementById("take");
+        const canvas = document.getElementById("canvas");
+        const closeCon = document.getElementById("closeCon");
+        const closeDup = document.getElementById("closeDup");
+        const control = document.getElementById('control');
+        const cancelAuthBtn = document.getElementById('cancelAuthBtn');
+        const controlsElement2 = document.getElementsByClassName('control2')[0];
+        const confBtn = document.getElementById('confBtn');
+
+        video.muted = true;
+        captureBtn.addEventListener("click", capturePhoto);
+
+        const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/${file}` });
+        faceMesh.onResults(onResultsFaceMesh);
+        initializeVideoStream();
+
+        function initializeVideoStream() {
+            const camera = new Camera(video, {
+                onFrame: async () => {
+                await faceMesh.send({ image: video });
+                }
+            });
+        camera.start();
+        }
+
+        function capturePhoto() {
+            video.pause();
+            canvas.classList.add("hidden");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const contextCtx = canvas.getContext("2d");
+            contextCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL("image/png");
+            const image = new Image();
+            image.width = canvas.width;
+            image.height = canvas.height;
+            image.src = dataURL;
+            image.id = "captured_photo";
+            video.replaceWith(image);
+            captureBtn.disabled = true;
+            getAttendance(canvas.width, canvas.height);
+        }
+
+        function convertBase64ToPNG(base64Image) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const context = canvas.getContext('2d');
+            context.drawImage(img, 0, 0);
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/png');
+            };
+            img.onerror = () => {
+            reject(new Error('Error loading image'));
+            };
+            img.src = base64Image;
+        });
+        }
+
+        function getAttendance(canvasWidth, canvasHeight) {
+        const context = canvas.getContext("2d");
+        if (!video || video.readyState !== 4) {
+            console.error("Video element is not ready.");
+            return;
+        }
+        try {
+            context.translate(canvasWidth, 0);
+            context.scale(-1, 1);
+            context.drawImage(video, 0, 0, canvasWidth, canvasHeight);
+            const base64Image = canvas.toDataURL("image/png");
+            convertBase64ToPNG(base64Image)
+            .then((pngBlob) => {
+                const date = new Date().toISOString().slice(0, 10);
+                const random = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                const filename = `User_${date}_${random}.png`;
+                const file = new File([pngBlob], filename, { type: 'image/png' });
+                const dateInstance = new Date();
+                const time = dateInstance.toLocaleString('en-US', {
+                hour: 'numeric',
+                minute: "numeric",
+                second: "numeric",
+                hour12: true
+                });
+                const data = {
+                "snapshot": file,
+                "user": "{{ user.id }}",
+                "time": time
+                };
+                postReq(data);
+            })
+            .catch((error) => {
+                console.error('Error converting image:', error);
+            });
+        } catch (error) {
+            console.error("Error capturing image:", error);
+        }
+        }
+
+        const postReq = async (data) => {
+            try {
+                const response = await axios.post("http://127.0.0.1:8000/api/r/", data, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                });
+                if (response.data.status === "success" && response.data.predicted_face != null && response.data.shift !== "duplicate") {
+                handleConfirmation(response.data);
+
+                confBtn.addEventListener("click", () => {
+                    handleConfirmAttendance(response.data);
+                    handleConfirmationClose();
+                    let success_holder = document.getElementById("success");
+                    success_holder.classList.remove("hidden");
+                    setTimeout(() => {
+                        success_holder.classList.add("hidden");
+                        location.reload();
+                    }, 2000);
+                });
+                closeCon.addEventListener("click", () => {
+                    handleCancelAttendance(response.data);
+                    location.reload();
+                });
+                } else if (response.data.status === "duplicate_entry") {
+                handleDuplicateEntry(response.data);
+                }
+
+            } catch (error) {
+                console.log(error);
+                location.reload();
+            }
+        };
+
+        const handleConfirmAttendance = async (data) => {
+            const recordId = data._id;
+            try {
+                const response = await axios.put(
+                `http://127.0.0.1:8000/api/r/attendance/${recordId}/confirm/`,
+                {},
+                {
+                    headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    },
+                }
+                );
+
+                console.log(response.data);  // Handle the response data as needed
+            } catch (error) {
+                console.log(error);
+         }
+        };
+
+        const handleCancelAttendance = async (data) => {
+            const recordId = data._id;
+
+            try {
+                const response = await axios.delete(
+                `http://127.0.0.1:8000/api/r/attendance/cancel/${recordId}/`,
+                {},
+                {
+                    headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                }
+                );
+                if (response.status === 204) {
+                    handleConfirmationClose();
+                }
+                console.log(response.data);  // Handle the response data as needed
+            } catch (error) {
+                console.log(error);
+         }
+        };
+
+        const handleConfirmation = (data) => {
+            const confirmation = document.getElementById("confirmation");
+            document.getElementById("_name").innerHTML = data.name;
+            document.getElementById("emp_id").innerHTML = data.id;
+            document.getElementById("_dept").innerHTML = data.dept;
+            document.getElementById("_dtime").innerHTML = data.dtime;
+            document.getElementById("_shift").innerHTML = data.shift;
+            const predImgHolder = document.getElementById("predicted_holder");
+            predImgHolder.src = data.predicted_face;
+            confirmation.classList.remove("hidden");
+        };
+
+        const handleDuplicateEntry = (data) => {
+        const duplicate = document.getElementById("duplicate");
+        const predImgHolder = document.getElementById("predicted_holder");
+        document.getElementById("duser").innerHTML = data.name;
+        duplicate.classList.remove("hidden");
+        };
+
+        closeDup.addEventListener("click", () => {
+        handleDuplicateClose();
+        });
+
+        // closeCon.addEventListener("click", () => {
+        // handleConfirmationClose();
+        // });
+
+        const handleDuplicateClose = () => {
+            const duplicate = document.getElementById("duplicate");
+            duplicate.classList.add("hidden");
+            location.reload();
+        };
+
+        const handleConfirmationClose = () => {
+            const confirmation = document.getElementById("confirmation");
+            confirmation.classList.add("hidden");
+        };
+
+        control.addEventListener('click', () => {
+            document.getElementById('authenticate').classList.remove('hidden');
+        });
+
+        const authBtn = document.getElementById('authBtn');
+        const password = document.getElementById('auth_password');
+        const postReqAuth = async (data) => {
+        try {
+            const response = await axios.post("http://127.0.0.1:8000/api/r/authenticate/",
+                { "password": password.value }, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+            });
+            if (response.status === 200) {
+                document.getElementById('status').innerHTML = "Authentication successful. Redirecting...";
+                let count = 3;
+                const countdown = setInterval(() => {
+                    document.getElementById('countdown').innerHTML = count;
+                    count--;
+                    if (count < 0) {
+                    clearInterval(countdown);
+                    window.location.href = "http://127.0.0.1:8000/settings/";
+                    count = 0;
+                    }
+                }, 1000);
+            }
+        } catch (error) {
+            document.getElementById('status').innerHTML = "Authentication failed. Please try again.";
+        }
+        };
+
+        authBtn.addEventListener('click', postReqAuth);
+        cancelAuthBtn.addEventListener('click', () => {
+        document.getElementById('authenticate').classList.add('hidden');
+        });
+
+        const fpsControl = new FPS();
+        function onResultsFaceMesh(results) {
+            document.body.classList.add('loaded');
+            fpsControl.tick();
+            const contextCtx = canvas.getContext("2d");
+            contextCtx.save();
+            contextCtx.clearRect(0, 0, canvas.width, canvas.height);
+            contextCtx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+            if (results.multiFaceLandmarks) {
+                for (const landmarks of results.multiFaceLandmarks) {
+                drawConnectors(
+                    contextCtx, landmarks, FACEMESH_TESSELATION,
+                    { color: '#C0C0C070', lineWidth: 1, radius: 1 });
+                drawConnectors(
+                    contextCtx, landmarks, FACEMESH_RIGHT_EYE,
+                    { color: '#FF3030', lineWidth: 1 });
+                drawConnectors(
+                    contextCtx, landmarks, FACEMESH_RIGHT_EYEBROW,
+                    { color: '#30FF30', lineWidth: 1 });
+                drawConnectors(
+                    contextCtx, landmarks, FACEMESH_LEFT_EYE,
+                    { color: '#FF3030', lineWidth: 1 });
+                drawConnectors(
+                    contextCtx, landmarks, FACEMESH_LEFT_EYEBROW,
+                    { color: '#30FF30', lineWidth: 1 });
+                drawConnectors(
+                    contextCtx, landmarks, FACEMESH_FACE_OVAL,
+                    { color: '#E0E0E0', lineWidth: 1 });
+                drawConnectors(
+                    contextCtx, landmarks, FACEMESH_LIPS,
+                    { color: '#331FCC', lineWidth: 1 });
+                }
+            }
+            contextCtx.restore();
+        }
+
+        new ControlPanel(controlsElement2, {
+        selfieMode: true,
+        maxNumFaces: 2,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+        })
+        .add([
+            new StaticText({ title: 'Image Gatherer Options' }),
+            fpsControl,
+            new Slider({
+            title: 'Max Number of Faces',
+            field: 'maxNumFaces',
+            range: [1, 4],
+            step: 1
+            }),
+            new Slider({
+            title: 'Min Detection Confidence',
+            field: 'minDetectionConfidence',
+            range: [0, 1],
+            step: 0.01
+            }),
+            new Slider({
+            title: 'Min Tracking Confidence',
+            field: 'minTrackingConfidence',
+            range: [0, 1],
+            step: 0.01
+            }),
+        ])
+        .on(options => {
+            canvas.classList.toggle('selfie', options.selfieMode);
+            faceMesh.setOptions(options);
+        });
+    </script>
+
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const datePicker = document.getElementById('datePicker');
+        const tableBody = document.getElementById('_list');
+
+        datePicker.value = new Date().toISOString().split('T')[0]; // Set the current date
+
+        const fetchData = async () => {
+            try {
+            const selectedDate = datePicker.value; // Get the selected date from the datepicker
+            const response = await axios.get(`http://127.0.0.1:8000/api/r/fetch/?date=${selectedDate}`);
+            tableBody.innerHTML = '';
+
+            response.data.forEach(data => {
+                const row = document.createElement('tr');
+                row.classList.add('flex', 'w-full', 'mb-2');
+
+                const createCell = (textContent, classNames) => {
+                const cell = document.createElement('td');
+                cell.classList.add(...classNames);
+                cell.textContent = textContent;
+                return cell;
+                };
+
+                row.appendChild(createCell(data.employee, ['p-2', 'w-1/4', 'font-bold', 'text-sm']));
+                row.appendChild(createCell(data.morning_in ? formatTime(data.morning_in) : '-', ['p-2', 'w-1/4']));
+                row.appendChild(createCell(data.lunch_in ? formatTime(data.lunch_in) : '-', ['p-2', 'w-1/4']));
+                row.appendChild(createCell(data.afternoon_out ? formatTime(data.afternoon_out) : '-', ['p-2', 'w-1/4']));
+
+                tableBody.appendChild(row);
+            });
+            } catch (error) {
+            console.log(error);
+            }
+        };
+
+        const formatTime = (time) => {
+            const [hours, minutes] = time.split(':');
+            const period = parseInt(hours, 10) >= 12 ? 'PM' : 'AM';
+            const formattedHours = (parseInt(hours, 10) % 12) || 12;
+            return `${formattedHours.toString().padStart(2, '0')}:${minutes.padStart(2, '0')} ${period}`;
+        };
+
+        datePicker.addEventListener('change', fetchData);
+        fetchData(); // Fetch data on load
+        });
+
+    </script>
+
+
+</body>
+
+</html>

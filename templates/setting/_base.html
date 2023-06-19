@@ -1,0 +1,304 @@
+{% load compress %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earist Administrative Attendance - FR_V.1.0</title>
+
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'src/output.css' %}">
+    {% endcompress %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.1/control_utils.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.1/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.1/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.1/face_mesh.js" crossorigin="anonymous"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+</head>
+<style>
+    img {
+        width: 100%;
+    }
+    video {
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+    #captured_photo {
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+
+</style>
+<body>
+
+    <nav class="bg-green-50 border-gray-200 bg-red-500 px-2 sm:px-4 py-2.5 dark:bg-gray-800">
+        <div class="container flex flex-wrap items-center justify-between mx-auto">
+          <a href="{{ .Site.Params.homepage }}/" class="flex items-center">
+              <img src="{% static 'src/logo.png' %}" class="h-8 mr-3 sm:h-12" alt="Flowbite Logo" />
+              <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Earist Administrative Attendance</span>
+          </a>
+          <button data-collapse-toggle="mobile-menu" type="button" class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="mobile-menu" aria-expanded="false">
+            <span class="sr-only">Open main menu</span>
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+            <svg class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+          </button>
+          <div class="hidden w-full md:block md:w-auto" id="mobile-menu">
+            <ul class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">
+                <a href="{% url 'logout' %}">
+                    <div class="mx-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-auto cursor-pointer hover:border-2" id="control">
+                        <svg fill="none" stroke="currentColor" class="text-white bg-red-500 rounded-full p-2" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"></path>
+                        </svg>
+                  </div>
+                </a>
+
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+    <div class="container mt-4 mx-auto">
+        {% block content %}
+        {% endblock content %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+    fetchWeeklyAttendance();
+    fetchMonthlyAttendance();
+    fetchDataset();
+    });
+
+    async function fetchWeeklyAttendance() {
+    try {
+        const response = await axios.get('http://127.0.0.1:8000/api/r/weekly/');
+        const attendanceData = response.data;
+        console.log(response.data['start_date']);
+        document.getElementById('start').innerHTML = response.data['start_date'];
+        document.getElementById('end').innerHTML = response.data['end_date'];
+        const sortedAttendanceData = sortAttendanceDataByDay(attendanceData.data);
+        console.log(sortedAttendanceData);
+
+
+    const ctx = document.getElementById('myChart');
+
+    new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        datasets: [{
+        label: '# of attendances per day',
+        data: sortedAttendanceData,
+        borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+        y: {
+            beginAtZero: true
+        }
+        }
+    }
+    });
+
+        // Handle the sorted attendance data as needed
+    } catch (error) {
+        console.error('Error fetching weekly attendance:', error);
+    }
+    }
+
+    async function fetchMonthlyAttendance() {
+    try {
+        const response = await axios.get('http://127.0.0.1:8000/api/r/monthly/');
+        console.log(response);
+        const dataLine = {
+        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        datasets: [{
+            label: 'Monthly Data',
+            data: sortAttendanceDataByMonth(response.data),
+            borderColor: 'rgb(75, 192, 192)',
+            fill: false
+        }]
+        };
+
+        // Configuration options for the line chart
+        const Lineoptions = {
+        responsive: true,
+        scales: {
+            y: {
+            beginAtZero: true
+            }
+        }
+        };
+        const Linectx = document.getElementById('lineChart');
+    new Chart(Linectx, {
+    type: 'line',
+    data: dataLine,
+    options: Lineoptions
+    });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching monthly attendance:', error);
+        return null;
+    }
+    }
+
+    function sortAttendanceDataByDay(attendanceData) {
+    if (Array.isArray(attendanceData)) {
+        const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        return attendanceData.sort((a, b) => {
+        const dayA = a.day;
+        const dayB = b.day;
+        return daysOrder.indexOf(dayA) - daysOrder.indexOf(dayB);
+        });
+    } else {
+        const attendanceArray = Object.values(attendanceData);
+        const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        return attendanceArray.sort((a, b) => {
+        const dayA = a.day;
+        const dayB = b.day;
+        return daysOrder.indexOf(dayA) - daysOrder.indexOf(dayB);
+        });
+    }
+    }
+
+    function sortAttendanceDataByMonth(attendanceData) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    // Sort the attendance data by month
+    const sortedAttendanceData = Object.entries(attendanceData)
+        .sort((a, b) => months.indexOf(a[0]) - months.indexOf(b[0]))
+        .reduce((acc, [month, count]) => {
+        acc[month] = count;
+        return acc;
+        }, {});
+
+    return sortedAttendanceData;
+    }
+
+
+    async function fetchDataset() {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/r/dataset/');
+    const datasetList = document.getElementById('dataset_list');
+    const datasetCount = Object.keys(response.data);
+
+    // Clear existing dataset list
+    datasetList.innerHTML = '';
+
+    // Loop through each dataset in the response
+    for (const dataset in response.data) {
+      // Create a div for the dataset
+        const datasetDiv = document.createElement('div');
+        datasetDiv.textContent = dataset;
+
+      // Create an image element for the dataset
+        const datasetImg = document.createElement('img');
+        const datasetCount = document.createElement('p');
+        datasetCount.innerHTML = "Dataset count : " + Object.keys(response.data[dataset]).length;
+        datasetCount.className = 'text-center text-xs font-semibold text-gray-500 uppercase tracking-wide';
+        // datasetImg.src = response.data[dataset][0];
+        datasetImg.src = "https://i.imgur.com/EuNHBya.png"
+        datasetImg.className = 'h-auto max-w-full rounded-lg';
+
+      // Append the image to the dataset div
+        datasetDiv.appendChild(datasetImg);
+        datasetDiv.appendChild(datasetCount);
+      // Append the dataset div to the dataset list
+        datasetList.appendChild(datasetDiv);
+    }
+
+    // Return the number of values per key using map
+
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching dataset:', error);
+    return null;
+  }
+}
+
+
+document.addEventListener('DOMContentLoaded', async function() {
+  var calendarEl = document.getElementById('calendar');
+  //Date Format : 2021-05-01
+  var date = new Date().toISOString().split('T')[0];
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    initialDate: date,
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    events: [] // Initialize with empty events
+  });
+
+  setTimeout(function() {
+    calendar.render();
+  }, 1000);
+
+
+  var tableRows = document.querySelectorAll('.employee-row');
+  tableRows.forEach(function(row) {
+    row.addEventListener('click', function() {
+      var employeeName = row.dataset.employeeName;
+      fetchAttendanceData(employeeName)
+        .then(function(events) {
+          calendar.getEvents().forEach(function(event) {
+            event.remove(); // Clear existing events
+          });
+          calendar.addEventSource(events); // Add new events
+        })
+        .catch(function(error) {
+          console.error('Failed to fetch attendance data:', error);
+        });
+    });
+  });
+});
+
+async function fetchAttendanceData(employeeName) {
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/r/attendance/', {
+      params: {
+        employee_name: employeeName
+      }
+    });
+    return processAttendanceData(response.data);
+  } catch (error) {
+    console.error('Failed to fetch attendance data:', error);
+    return [];
+  }
+}
+
+function processAttendanceData(data) {
+  var events = [];
+  data.forEach(function(record) {
+    var event = {
+      title: record.title,
+      start: record.start_date
+    };
+    // Add more properties to the event based on your API data
+    events.push(event);
+  });
+  return events;
+}
+
+    
+</script>
+</body>
+
+</html>

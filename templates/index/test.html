@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Face Recognition with Custom Dataset using TensorFlow.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@2.1.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-recognition@0.1.0"></script>
+  </head>
+  <body>
+    <div>
+      <video id="video" width="640" height="480" autoplay></video>
+      <canvas id="canvas" width="640" height="480"></canvas>
+    </div>
+
+    <script>
+      // Function to start face recognition
+      async function startFaceRecognition() {
+        const videoElement = document.getElementById('video');
+        const canvasElement = document.getElementById('canvas');
+        const ctx = canvasElement.getContext('2d');
+
+        // Load the face landmarks detection model
+        await faceLandmarksDetection.load();
+
+        // Load the face recognition model
+        const model = await faceRecognition.load();
+
+        // Load your custom face recognition dataset (embeddings and labels)
+        const customEmbeddings = []; // Array to store custom face embeddings
+        const customLabels = []; // Array to store corresponding labels
+
+        // Function to preprocess and store custom face embeddings
+        async function loadCustomDataset() {
+          // Iterate over your custom dataset images
+          for (let i = 0; i < customDataset.length; i++) {
+            const image = customDataset[i]; // Replace with your custom dataset images
+            const tensor = tf.browser.fromPixels(image); // Convert image to tensor
+            const embedding = await model.computeFaceDescriptor(tensor); // Compute face embedding
+            customEmbeddings.push(embedding); // Store the face embedding
+            customLabels.push('Label ' + i); // Store the corresponding label (replace with your label)
+            tensor.dispose();
+          }
+        }
+
+        // Get access to the user's camera
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
+
+        // Wait for the video metadata to load, then play the video
+        videoElement.addEventListener('loadedmetadata', () => {
+          videoElement.play();
+          detectFaces();
+        });
+
+        // Function to detect faces in each video frame
+        async function detectFaces() {
+          ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+          const predictions = await faceLandmarksDetection.estimateFaces(videoElement);
+
+          // Clear the canvas
+          ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+          // Perform face recognition on each detected face
+          predictions.forEach(async (prediction) => {
+            const faceTensor = tf.browser.fromPixels(videoElement);
+            const faceEmbedding = await model.computeFaceDescriptor(faceTensor);
+            faceTensor.dispose();
+
+            // Compare the face embedding with your custom dataset
+            const result = recognizeFace(faceEmbedding);
+
+            // Draw bounding boxes and labels around detected faces
+            const { topLeft, bottomRight } = prediction.boundingBox;
+            ctx.beginPath();
+            ctx.lineWidth = '2';
+            ctx.strokeStyle = result.isMatch ? 'green' : 'red';
+            ctx.rect(topLeft[0], topLeft[1], bottomRight[0] - topLeft[0], bottomRight[1] - topLeft[1]);
+            ctx.stroke();
+            ctx.fillStyle = result.isMatch ? 'green' : 'red';
+            ctx.fillText(result.label, topLeft[0], topLeft[1] > 10 ? topLeft[1] - 5 : 10);
+          });
+
+          // Recursively call detectFaces on the next video frame
+          requestAnimationFrame(detectFaces);
+        }
+
+        // Function to perform face recognition on the given face embedding
+        function recognizeFace(faceEmbedding) {
+          // Compare the face embedding with your custom dataset
+          let minDistance = Infinity;
+          let minIndex = -1;
+
+          for (let i = 0; i < customEmbeddings.length; i++) {
+            const distance = tf.losses.cosineDistance(faceEmbedding, customEmbeddings[i], 0);
+            const distanceValue = distance.dataSync()[0];
+            distance.dispose();
+
+            if (distanceValue < minDistance) {
+              minDistance = distanceValue;
+              minIndex = i;
+            }
+          }
+
+          // Set a threshold for face recognition
+          const threshold = 0.5;
+          const isMatch = minDistance <= threshold;
+          const label = isMatch ? customLabels[minIndex] : 'Unknown';
+
+          return { isMatch, label };
+        }
+
+        // Load your custom face recognition dataset
+        await loadCustomDataset();
+      }
+
+      // Start face recognition when the page loads
+      window.addEventListener('DOMContentLoaded', () => {
+        startFaceRecognition().catch((error) => console.error(error));
+      });
+    </script>
+  </body>
+</html>

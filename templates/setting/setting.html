@@ -1,0 +1,135 @@
+{% extends "setting/_base.html" %}
+
+{% block content %}
+
+
+<div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center justify-center" id="myTab" data-tabs-toggle="#myTabContent" role="tablist">
+        <li class="mr-2" role="presentation">
+            <button class="inline-block p-4 border-b-2 uppercase rounded-t-lg" id="profile-tab" data-tabs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Profile</button>
+        </li>
+        <li class="mr-2" role="presentation">
+            <button class="inline-block p-4 border-b-2 uppercase border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="dashboard-tab" data-tabs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">Dataset</button>
+        </li>
+        <li class="mr-2" role="presentation">
+            <button class="inline-block uppercase p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="settings-tab" data-tabs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">
+                Reports</button>
+        </li>
+    </ul>
+</div>
+<div id="myTabContent">
+    <div class="hidden w-full flex items-center justify-center p-4 rounded-lg" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+        
+        <div class="w-full max-w-4xl bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex flex-inline p-2">
+                <svg fill="none" stroke="currentColor" class="flex items-center justify-center mt-1 text-red-500 h-8 w-8 flex-shrink-0" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path>
+                  </svg>
+                  <h1 class="p-2 text-lg font-bold text-gray-600 items-center justify-center">Administrator Information</h1>
+            </div>
+            <form class="p-6">
+                <div class="grid md:grid-cols-2 md:gap-6">
+                <div class="relative z-0 w-full mb-6 group">
+                    <input type="text" name="floating_first_name" id="floating_first_name" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="{{request.user.first_name}}" required />
+                    <label for="floating_first_name" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">First name</label>
+                </div>
+                <div class="relative z-0 w-full mb-6 group">
+                    <input type="text" name="floating_last_name" id="floating_last_name" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="{{request.user.last_name}}" required />
+                    <label for="floating_last_name" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Last name</label>
+                </div>
+                </div>
+                <div class="grid md:grid-cols-2 md:gap-6">
+                <div class="relative z-0 w-full mb-6 group">
+                    <input type="email" name="floating_phone" id="floating_phone" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="{{request.user.email}}" required />
+                    <label for="floating_phone" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Email address</label>
+                </div>
+                <div class="relative z-0 w-full mb-6 group">
+                    <input type="text" name="floating_company" id="floating_company" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value="{{request.user.username}}" required />
+                    <label for="floating_company" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Username</label>
+                </div>
+                </div>
+                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+            </form>
+
+        </div>
+
+          
+      </div>
+      
+    <div class="hidden w-full flex items-center justify-center  p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+        <div class="w-full max-w-4xl">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4" id="dataset_list">
+
+            </div>
+        </div>
+
+        
+    </div>
+    <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+        <h1 class="text-start text-lg font-bold uppercase text-red-400 ml-4">Overall Attendance Report Anlysis - School Year 2023-2024</h1>
+        <div class="grid grid-cols-2 gap-4 m-2 border rounded border-gray-500 mt-4">
+            <div class="p-2">
+                <canvas id="lineChart"></canvas>
+                <h1 class="font-semibold mt-4 text-center">Monthly</h1>
+            </div>
+            <div class="p-2">
+                <canvas id="myChart"></canvas>
+                <h1 class="font-semibold text-center mt-4">Weekly : <span id="start" class="font-medium"></span> - <span id="end" class="font-medium"></span></h1>
+            </div>
+        </div>
+        <h1 class="text-start text-lg font-bold uppercase text-red-500 ml-4">Individual Attendance Analysis</h1>
+
+        <div class="grid grid-cols-2 gap-4 m-2 p-4 border rounded border-gray-500 mt-4">
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+              <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
+                      Employee
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                      Present
+                    </th>
+                    <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-800">
+                      Late
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                      Absent
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for employee_count in employee_counts %}
+                  <tr class="border-b border-gray-200 dark:border-gray-700 employee-row" data-employee-name="{{ employee_count.employee.name }}">
+                    <th scope="row" class="px-6 py-4 cursor-pointer font-medium hover:text-blue-600 underline text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">
+                      {{ employee_count.employee.name }}
+                    </th>
+                    <td class="px-6 py-4">
+                      {{ employee_count.present_count }}
+                    </td>
+                    <td class="px-6 py-4 bg-gray-50 dark:bg-gray-800">
+                      {{ employee_count.late_count }}
+                    </td>
+                    <td class="px-6 py-4">
+                      {{ employee_count.absent_count }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <div id="calendar"></div>
+              <canvas id="attendanceChart"></canvas>
+            </div>
+          </div>
+          
+        
+    </div>
+
+</div>
+
+
+ 
+
+{% endblock %}
