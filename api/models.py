@@ -2,7 +2,8 @@ import base64
 from django.core.files.base import ContentFile
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.utils.text import slugify
+from django.urls import reverse
 
 class Employee(models.Model):
     verified_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -13,9 +14,19 @@ class Employee(models.Model):
     date_added = models.DateField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    slug = models.SlugField(max_length=255, blank=True, null=True)
+
 
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        if self.emp_id and self.name and self.department and self.position:
+            self.slug = slugify(self.emp_id + '-' + self.name + '-' + self.department + '-' + self.position)
+        super(Employee, self).save(*args, **kwargs)
+    
+    def get_absolute_url(self):
+        return reverse('employee-detail', kwargs={'slug': self.slug})
 
 
 class AttendanceRecord(models.Model):

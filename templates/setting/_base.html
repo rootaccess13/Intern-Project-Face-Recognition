@@ -56,6 +56,13 @@
                         </svg>
                   </div>
                 </a>
+                <a href="{% url 'admin:login' %}">
+                    <div class="mx-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-auto cursor-pointer border-2" id="control">
+                        <svg fill="none" stroke="currentColor" class="text-white bg-red-500 rounded-full p-2" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path>
+                          </svg>
+                  </div>
+                </a>
 
             </ul>
           </div>
@@ -299,6 +306,72 @@ function processAttendanceData(data) {
 
     
 </script>
+<script>
+    function fetchAttendanceData(slug) {
+        // Make an AJAX request using Axios to fetch the attendance data
+        // Replace `url` with the appropriate URL endpoint to fetch the data
+        // You may need to modify the URL structure according to your Django project
+        const url = `http://127.0.0.1:8000/api/r/employee/${slug}/`; // Example URL endpoint
+        const headers = {
+            'X-CSRFToken': '{{csrf_token}}', // Call the function to get the CSRF token
+        };
+
+        axios.get(url, { headers })
+            .then(response => {
+                const data = response.data;
+                displayAttendanceData(data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    function displayAttendanceData(data) {
+        const employee = data.employee;
+        const attendance = data.attendance;
+
+        // Update the employee details on the page
+        const employeeNameElement = document.querySelector('#employee-name');
+        const employeeDepartmentElement = document.querySelector('#employee-department');
+        const employeePositionElement = document.querySelector('#employee-position');
+
+
+        // Update the attendance table on the page
+        const tableBody = document.querySelector('#attendance-table tbody');
+        tableBody.innerHTML = '';
+
+        // Loop through the attendance data and create rows in the table
+        for (const record of attendance) {
+            const row = document.createElement('tr');
+            const dateCell = document.createElement('td');
+            const timeCell = document.createElement('td');
+            const statusCell = document.createElement('td');
+
+            dateCell.innerHTML = employee.name;
+            timeCell.innerHTML = record.morning_in;
+            statusCell.innerHTML = record.afternoon_out;
+
+            row.appendChild(dateCell);
+            row.appendChild(timeCell);
+            row.appendChild(statusCell);
+
+            tableBody.appendChild(row);
+        }
+    }
+
+
+    // Attach event listeners to the "View" links using the slug as the ID
+    const viewLinks = document.querySelectorAll('.text-blue-500.underline');
+    viewLinks.forEach(function(link) {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const slug = this.getAttribute('id');
+            fetchAttendanceData(slug);
+        });
+    });
+</script>
+
+
 </body>
 
 </html>

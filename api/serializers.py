@@ -18,3 +18,8 @@ class AuthenticateSerializers(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'password']
+
+class EmployeeSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = '__all__'

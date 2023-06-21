@@ -111,7 +111,7 @@ import os
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'facerec/static')
+    os.path.join(BASE_DIR, '/static')
 ]
 CSRF_EXEMPT_PATHS = [
     r'^api/r/attendance/cancel/(?P<pk>\d+)/$',  # Update the path as per your URL pattern

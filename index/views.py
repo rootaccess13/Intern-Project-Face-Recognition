@@ -22,7 +22,7 @@ def gathers(request):
 
 def settings(request):
     employees = Employee.objects.all()
-    records = AttendanceRecord.objects.all()
+    records = AttendanceRecord.objects.all().filter()
     
     # Count the occurrences of is_present, is_late, and is_absent for each employee
     employee_counts = records.values('employee').annotate(
@@ -42,3 +42,9 @@ def settings(request):
     
     return render(request, 'setting/setting.html', context)
 
+
+def reqdtr(request):
+    context = {
+        'list_employee': Employee.objects.all()
+    }
+    return render(request, 'setting/reqdtr.html', context)

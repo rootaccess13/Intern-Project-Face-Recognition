@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from django.conf import settings
 import os
 from django.db.models import Q
-from .serializers import AttendanceSerializers, fetchAttendanceSerializers, AuthenticateSerializers
+from .serializers import AttendanceSerializers, fetchAttendanceSerializers, AuthenticateSerializers, EmployeeSerializers
 from .models import AttendanceRecord, Employee
 from .knn_detector import predict, show_prediction_labels_on_image
 from rest_framework.exceptions import AuthenticationFailed
@@ -20,6 +20,7 @@ from django.http import JsonResponse
 from django.db.models import Count
 from datetime import datetime, timedelta
 from rest_framework import viewsets
+
 
 
 class AttendanceEntryViewset(ModelViewSet):
@@ -309,3 +310,34 @@ class CancelAttendanceViewSet(ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except AttendanceRecord.DoesNotExist:
             return Response({"detail": "Attendance record not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class FetchAllEmployessViewset(ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializers
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request):
+        queryset = Employee.objects.all()
+        serializer = EmployeeSerializers(queryset, many=True)
+        return Response(serializer.data)
+
+class EmployeeDetailsViewset(ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializers
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        employee_slug = kwargs.get('slug')
+        try:
+            employee = Employee.objects.get(slug=employee_slug)
+            attendance = AttendanceRecord.objects.filter(employee=employee)
+            attendance_serializer = AttendanceSerializers(attendance, many=True)
+            employee_serializer = EmployeeSerializers(employee)
+            data = {
+                'employee': employee_serializer.data,
+                'attendance': attendance_serializer.data
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except Employee.DoesNotExist:
+            return Response({'error': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
